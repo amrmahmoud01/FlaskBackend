@@ -1,9 +1,10 @@
 from flask import Flask, jsonify
-from sqlalchemy import create_engine, select, and_
+from sqlalchemy import create_engine, select, and_,text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 from flask_cors import CORS
 from models.models import Store, Product, Productimages
+from sqlalchemy import func
 
 app = Flask(__name__)
 CORS(app)
@@ -56,6 +57,8 @@ def get_all_products():
                 .offset(offset)
                 .limit(limit)
             )
+        
+        params = {}
 
         if store:
             conditions.append(Store.storeName.in_(store))
@@ -70,19 +73,22 @@ def get_all_products():
             conditions.append(Product.price<=priceMax)
         
         if search:
-            conditions.append(Product.name.ilike(f"%{search}%"))
+            conditions.append(
+                text("MATCH(product.name) AGAINST(:search IN BOOLEAN MODE)")
+            )
+            params["search"] = search
+        
 
         total_count_stmt = select(func.count(Product.productId)).join(Store, Store.id == Product.storeId)
         
         if conditions:
             stmt = stmt.where(and_(*conditions))
             total_count_stmt = total_count_stmt.where(and_(*conditions))
-            total_count = session.execute(total_count_stmt).scalar()
+            total_count = session.execute(total_count_stmt, params).scalar()
 
 
         
-
-        results = session.execute(stmt).all()
+        results = session.execute(stmt,params).all()
 
         # Build result list
         products = [
