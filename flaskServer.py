@@ -158,5 +158,25 @@ def getCategories():
 
         session.close()
 
+
+@app.route("/getGenders")
+def getGenders():
+    
+    session=SessionLocal()
+
+    try:
+        stmt = select(Product.gender).distinct()
+        results = session.scalars(stmt).all()
+        result = [{"gender": gender}for gender in results]
+        return jsonify(result),200
+    
+    except SQLAlchemyError as e:
+        session.rollback()
+        print("❌ Database error:", e)
+        return jsonify({"error": str(e)}), 500
+
+
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True, port=5000, threaded=False)

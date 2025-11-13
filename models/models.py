@@ -34,6 +34,7 @@ class Product(Base):
     productLink: Mapped[Optional[str]] = mapped_column(String(2083))
     name: Mapped[Optional[str]] = mapped_column(String(90))
     storeId: Mapped[Optional[int]] = mapped_column(Integer)
+    gender: Mapped[Optional[str]] = mapped_column(String(90))
 
     store: Mapped[Optional['Store']] = relationship('Store', back_populates='product')
     productimages: Mapped[List['Productimages']] = relationship('Productimages', back_populates='product')
