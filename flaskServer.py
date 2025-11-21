@@ -40,6 +40,7 @@ def get_all_products():
         priceMax=   request.args.get("priceMax")
         category = request.args.getlist("category")
         search = request.args.get("search")
+        onSale = request.args.get("onSale", False)
         offset = (page - 1) * limit
 
         # Get total number of products
@@ -71,7 +72,10 @@ def get_all_products():
 
         if priceMax:
             conditions.append(Product.price<=priceMax)
-        
+
+        if onSale:
+            conditions.append(Product.salePrice>0)
+
         if search:
             conditions.append(
                 text("MATCH(product.name) AGAINST(:search IN BOOLEAN MODE)")
@@ -98,6 +102,7 @@ def get_all_products():
                 "price": p.price,
                 "link": p.productLink,
                 "image": img.URL,
+                "salePrice": p.salePrice
             }
             for p, img in results
         ]
