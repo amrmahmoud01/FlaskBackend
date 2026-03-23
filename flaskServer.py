@@ -1,9 +1,9 @@
 from flask import Flask, jsonify
-from sqlalchemy import create_engine, select, and_,text
+from sqlalchemy import create_engine, select, and_,text,or_, desc, literal_column
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 from flask_cors import CORS
-from models.models import Store, Product, Productimages
+from models.models import Store, Product, Productimages, ProductColor
 from sqlalchemy import func
 
 app = Flask(__name__)
@@ -52,9 +52,10 @@ def get_all_products():
 
         conditions = []
         stmt = (
-                select(Product, Productimages)
+                select(Product, Productimages, ProductColor)
                 .join(Productimages, Product.productId == Productimages.productId)
                 .join(Store, Store.id == Product.storeId)
+                .outerjoin(ProductColor, ProductColor.productId == Product.productId)
                 .offset(offset)
                 .limit(limit)
             )
@@ -77,13 +78,23 @@ def get_all_products():
             conditions.append(Product.salePrice>0)
 
         if search:
-            conditions.append(
-                text("MATCH(product.name) AGAINST(:search IN BOOLEAN MODE)")
-            )
+            search_words = search.split()
             params["search"] = search
+
+            for word in search_words:
+                conditions.append(
+                    text(f"(MATCH(product.name) AGAINST('{word}' IN BOOLEAN MODE) "
+                    f"OR MATCH(productcolors.color) AGAINST('{word}' IN BOOLEAN MODE))")
+                    )
+            relevance_sql = (
+                f"MATCH(product.name) AGAINST('{search}') + "
+                f"MATCH(productcolors.color) AGAINST('{search}')"
+            )
+            stmt = stmt.add_columns(literal_column(relevance_sql).label("relevance"))
+            stmt = stmt.order_by(desc(literal_column("relevance")))
         
 
-        total_count_stmt = select(func.count(Product.productId)).join(Store, Store.id == Product.storeId)
+        total_count_stmt = select(func.count(Product.productId)).join(Store, Store.id == Product.storeId).outerjoin(ProductColor,ProductColor.productId==Product.productId)
         
         if conditions:
             stmt = stmt.where(and_(*conditions))
@@ -102,9 +113,10 @@ def get_all_products():
                 "price": p.price,
                 "link": p.productLink,
                 "image": img.URL,
-                "salePrice": p.salePrice
+                "salePrice": p.salePrice,
+                "color": pc.color if pc else None
             }
-            for p, img in results
+            for p, img, pc, *rest in results
         ]
 
         total_pages = (total_count + limit - 1) // limit  # ceil division
@@ -179,7 +191,6 @@ def getGenders():
         session.rollback()
         print("❌ Database error:", e)
         return jsonify({"error": str(e)}), 500
-
 
 
 
