@@ -79,16 +79,23 @@ def get_all_products():
 
         if search:
             search_words = search.split()
+            escaped_search = search.replace("'", "''")  
+
+
             params["search"] = search
+
+            raw_words = search.split()
+            search_words = [word.replace("'", "''") for word in raw_words]
+
 
             for word in search_words:
                 conditions.append(
-                    text(f"(MATCH(product.name) AGAINST('{word}' IN BOOLEAN MODE) "
-                    f"OR MATCH(productcolors.color) AGAINST('{word}' IN BOOLEAN MODE))")
+                    text(f"(MATCH(product.name) AGAINST('{escaped_search}' IN BOOLEAN MODE) "
+                    f"OR MATCH(productcolors.color) AGAINST('{escaped_search}' IN BOOLEAN MODE))")
                     )
             relevance_sql = (
-                f"MATCH(product.name) AGAINST('{search}') + "
-                f"MATCH(productcolors.color) AGAINST('{search}')"
+                f"MATCH(product.name) AGAINST('{escaped_search}') + "
+                f"MATCH(productcolors.color) AGAINST('{escaped_search}')"
             )
             stmt = stmt.add_columns(literal_column(relevance_sql).label("relevance"))
             stmt = stmt.order_by(desc(literal_column("relevance")))
