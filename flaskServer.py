@@ -45,7 +45,8 @@ def get_all_products():
             select(
                 Product, 
                 func.any_value(Productimages.URL).label("img_url"), 
-                func.group_concat(distinct(ProductColor.color)).label("colors")
+                func.group_concat(distinct(ProductColor.color)).label("colors"),
+                Store
             )
             .join(Productimages, Product.productId == Productimages.productId)
             .join(Store, Store.id == Product.storeId)
@@ -95,25 +96,29 @@ def get_all_products():
             total_count_stmt = total_count_stmt.where(and_(*conditions))
 
         total_count = session.execute(total_count_stmt).scalar()
-        results = session.execute(stmt).all()
+        results = session.execute(stmt).mappings().all()
 
         # 5. The Result Builder (The Fix for the 'str' error)
         products = []
+        print("////////////////////////RESUTLS:", results)
         for row in results:
             # row[0] = Product model, row[1] = img_url string, row[2] = colors string
-            p = row[0]
-            img_url = row[1]
-            colors_str = row[2]
+            p = row['Product']
+            img_url = row['img_url']
+            colors_str = row['colors']
+            store = row['Store']
 
             products.append({
                 "id": p.productId,
                 "name": p.name,
+                "store":store.storeName,
                 "price": p.price,
                 "link": p.productLink,
                 "image": img_url,  # Access directly, it's already a string!
                 "salePrice": p.salePrice,
                 "colors": colors_str.split(",") if colors_str else []
             })
+            
 
         total_pages = (total_count + limit - 1) // limit
         return jsonify({
