@@ -35,8 +35,12 @@ def get_all_products():
         # 1. Params and Pagination
         page = int(request.args.get("page", 1))
         limit = int(request.args.get("limit", 21))
+        store = request.args.getlist("store")
+        priceMin = request.args.get("priceMin")
+        priceMax=   request.args.get("priceMax")
+        category = request.args.getlist("category")
         search = request.args.get("search")
-        # ... other args like store, category, price ...
+        onSale = request.args.get("onSale", False)
         offset = (page - 1) * limit
 
         # 2. Build the Select Statement
