@@ -121,11 +121,15 @@ def get_all_products():
             
 
         total_pages = (total_count + limit - 1) // limit
+
+        hasNext = page < total_pages
+
         return jsonify({
             "page": page,
             "total_count": total_count,
             "total_pages": total_pages,
-            "products": products
+            "products": products,
+            "hasNext":hasNext,
         }), 200
 
     except Exception as e:
