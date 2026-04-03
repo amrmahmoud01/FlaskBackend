@@ -64,6 +64,21 @@ def get_all_products():
         params = {}
 
         # 3. Apply Search Logic (Matching your exact SQL intent)
+        if store:
+            conditions.append(Store.storeName.in_(store))
+        
+        if category:
+            conditions.append(Product.type.in_(category))
+        
+        if priceMin:
+            conditions.append(Product.price>=priceMin)
+
+        if priceMax:
+            conditions.append(Product.price<=priceMax)
+
+        if onSale:
+            conditions.append(Product.salePrice>0)
+
         if search:
             escaped_search = search.replace("'", "''")
             search_words = search.split()
@@ -96,15 +111,15 @@ def get_all_products():
             .join(Store, Store.id == Product.storeId)
             .outerjoin(ProductColor, ProductColor.productId == Product.productId)
         )
-        if conditions:
-            total_count_stmt = total_count_stmt.where(and_(*conditions))
+        total_count_stmt = total_count_stmt.where(and_(*conditions))
+
+        
 
         total_count = session.execute(total_count_stmt).scalar()
         results = session.execute(stmt).mappings().all()
 
         # 5. The Result Builder (The Fix for the 'str' error)
         products = []
-        print("////////////////////////RESUTLS:", results)
         for row in results:
             # row[0] = Product model, row[1] = img_url string, row[2] = colors string
             p = row['Product']
