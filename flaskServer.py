@@ -5,15 +5,22 @@ from sqlalchemy.exc import SQLAlchemyError
 from flask_cors import CORS
 from models.models import Store, Product, Productimages, ProductColor
 from sqlalchemy import func
+from dotenv import load_dotenv
+import os
 
 app = Flask(__name__)
 CORS(app)
 
+
+load_dotenv()
+
+
 engine = create_engine(
-    "mysql+pymysql://avnadmin:AVNS_45tjPT5Um3BBzKuFKTB@wassup-shopping-amrsallam2001-038e.l.aivencloud.com:20553/wassup_testing",
-    echo=True,
-    pool_pre_ping=True,
-    pool_recycle=280,
+            f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASS')}@"
+            f"{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}",
+            echo=False,
+            pool_pre_ping=True,
+            pool_recycle=280,
 )
 
 
