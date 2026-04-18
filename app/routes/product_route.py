@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Blueprint, Flask, jsonify
 from sqlalchemy import create_engine, select, and_,text,or_, desc, literal_column, distinct
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
@@ -8,29 +8,21 @@ from sqlalchemy import func
 from dotenv import load_dotenv
 from routes import filters_route # Import your Blueprint
 from routes.filters_route import filter_bp
-from routes.product_route import product_bp
 from services.database_service import startSession
 from flask import request
-
+from services.product_service import getAllProducts
+from services import product_service
 from flask import request
 from sqlalchemy import func
 import os
 
-app = Flask(__name__)
-CORS(app)
+product_bp = Blueprint('products', __name__)
 
-
-load_dotenv()
-
-@app.route("/")
-def index():
-    return jsonify({"message": "Drink"})
-
-app.register_blueprint(filter_bp)
-app.register_blueprint(product_bp)
-
-
-
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True, port=5000, threaded=True)
+@filter_bp.route("/getAllProducts")
+def getAllProducts():
+    try:
+        products = product_service.getAllProducts()
+        # Format the data for the frontend
+        return jsonify(products), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500

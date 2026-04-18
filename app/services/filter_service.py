@@ -46,3 +46,16 @@ def get_stores():
         return e
     finally:
         session.close()
+
+def getGenders():
+    session = startSession()
+    try:
+        stmt = select(Product.gender).distinct()
+        results = session.scalars(stmt).all()
+        result = [{"gender": gender}for gender in results]
+        return result
+    
+    except SQLAlchemyError as e:
+        session.rollback()
+        print("❌ Database error:", e)
+        return e
