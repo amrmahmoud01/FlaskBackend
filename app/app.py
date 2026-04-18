@@ -6,6 +6,8 @@ from flask_cors import CORS
 from models.models import Store, Product, Productimages, ProductColor
 from sqlalchemy import func
 from dotenv import load_dotenv
+from routes import filters_route # Import your Blueprint
+from routes.filters_route import filter_bp
 import os
 
 app = Flask(__name__)
@@ -181,24 +183,26 @@ def get_stores():
         session.close()
 
 
-@app.route("/getCats")
-def getCategories():
-    session = SessionLocal()
-    try:
-        stmt = select(Product.type).distinct()
-        results = session.scalars(stmt).all()
-        result = [{"category": type} for type in results]
-        return jsonify(result), 200
+# @app.route("/getCats")
+# def getCategories():
+#     session = SessionLocal()
+#     try:
+#         stmt = select(Product.type).distinct()
+#         results = session.scalars(stmt).all()
+#         result = [{"category": type} for type in results]
+#         return jsonify(result), 200
     
-    except SQLAlchemyError as e:
+#     except SQLAlchemyError as e:
 
-        session.rollback()
-        print("❌ Database error:", e)
-        return jsonify({"error": str(e)}), 500
+#         session.rollback()
+#         print("❌ Database error:", e)
+#         return jsonify({"error": str(e)}), 500
     
-    finally:
+#     finally:
 
-        session.close()
+#         session.close()
+
+app.register_blueprint(filter_bp)
 
 
 @app.route("/getGenders")
