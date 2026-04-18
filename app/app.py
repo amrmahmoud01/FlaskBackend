@@ -24,6 +24,7 @@ load_dotenv()
 
 @app.route("/")
 def index():
+    """Initial Tester API"""
     return jsonify({"message": "Drink"})
 
 app.register_blueprint(filter_bp)
