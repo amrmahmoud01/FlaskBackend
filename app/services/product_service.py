@@ -133,11 +133,11 @@ def getAllProducts():
             "total_pages": total_pages,
             "products": products,
             "hasNext":hasNext,
-        }, 200
+        }
 
     except Exception as e:
         session.rollback()
         print("❌ Error:", e)
-        return e
+        raise e
     finally:
         session.close()

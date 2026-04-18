@@ -7,17 +7,21 @@ from models.models import Store, Product, Productimages, ProductColor
 from sqlalchemy import func
 from dotenv import load_dotenv
 import os
+from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy import create_engine
 
+load_dotenv()
 
-def startSession():
-    engine = create_engine(
+engine = create_engine(
                 f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASS')}@"
                 f"{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}",
                 echo=False,
                 pool_pre_ping=True,
                 pool_recycle=280,
     )
-    SessionLocal = sessionmaker(bind=engine)
 
-    session = SessionLocal()
-    return session
+session_factory = sessionmaker(bind=engine)
+Session = scoped_session(session_factory)
+
+def startSession():
+    return Session()

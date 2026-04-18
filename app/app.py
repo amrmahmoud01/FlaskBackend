@@ -11,6 +11,8 @@ from routes.filters_route import filter_bp
 from routes.product_route import product_bp
 from services.database_service import startSession
 from flask import request
+from services.database_service import Session # Import the scoped session
+
 
 from flask import request
 from sqlalchemy import func
@@ -30,6 +32,10 @@ def index():
 app.register_blueprint(filter_bp)
 app.register_blueprint(product_bp)
 
+
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    Session.remove()
 
 
 

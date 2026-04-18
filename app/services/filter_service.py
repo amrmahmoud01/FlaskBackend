@@ -27,7 +27,7 @@ def getCategories():
 
         session.rollback()
         print("❌ Database error:", e)
-        return e
+        raise e
     
     finally:
 
@@ -43,7 +43,7 @@ def get_stores():
     except SQLAlchemyError as e:
         session.rollback()
         print("❌ Database error:", e)
-        return e
+        raise e
     finally:
         session.close()
 
@@ -58,4 +58,6 @@ def getGenders():
     except SQLAlchemyError as e:
         session.rollback()
         print("❌ Database error:", e)
-        return e
+        raise e
+    finally:
+        session.close()
