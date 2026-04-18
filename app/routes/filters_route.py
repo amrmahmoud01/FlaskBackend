@@ -33,8 +33,7 @@ def getCategories():
     try:
         categories = filter_service.getCategories()
         # Format the data for the frontend
-        result = [{"category": c} for c in categories]
-        return jsonify(result)
+        return jsonify(categories)
     except SQLAlchemyError as e:
         session.rollback()
         # Keep the log for you, return a clean message for the user
