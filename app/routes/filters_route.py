@@ -16,18 +16,7 @@ def getCategories():
     load_dotenv()
 
 
-    engine = create_engine(
-                f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASS')}@"
-                f"{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}",
-                echo=False,
-                pool_pre_ping=True,
-                pool_recycle=280,
-    )
 
-
-    SessionLocal = sessionmaker(bind=engine)
-
-    session = SessionLocal()
 
 
     try:
@@ -35,10 +24,4 @@ def getCategories():
         # Format the data for the frontend
         return jsonify(categories)
     except SQLAlchemyError as e:
-        session.rollback()
-        # Keep the log for you, return a clean message for the user
-        print(f"❌ Database error: {e}")
         return jsonify({"error": str(e)}), 500
-    
-    finally:
-        session.close()
