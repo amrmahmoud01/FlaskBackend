@@ -16,8 +16,6 @@ load_dotenv()
 
 def getCategories():
 
-    #TODO Modularize DB engine creation
-
     session = startSession()
     try:
         stmt = select(Product.type).distinct()
@@ -33,4 +31,18 @@ def getCategories():
     
     finally:
 
+        session.close()
+
+def get_stores():
+    session = startSession()
+    try:
+        stmt = select(Store)
+        results = session.scalars(stmt).all()
+        result = [{"name": s.storeName} for s in results]
+        return result
+    except SQLAlchemyError as e:
+        session.rollback()
+        print("❌ Database error:", e)
+        return e
+    finally:
         session.close()

@@ -13,15 +13,17 @@ filter_bp = Blueprint('filters', __name__)
 @filter_bp.route("/getCats")
 def getCategories():
 
-    load_dotenv()
-
-
-
-
-
     try:
         categories = filter_service.getCategories()
         # Format the data for the frontend
         return jsonify(categories)
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
+
+@filter_bp.route("/getStores")
+def getStores():
+    try:
+        stores = filter_service.get_stores()
+        return jsonify(stores)
     except SQLAlchemyError as e:
         return jsonify({"error": str(e)}), 500

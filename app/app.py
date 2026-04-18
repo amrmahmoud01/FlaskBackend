@@ -8,6 +8,11 @@ from sqlalchemy import func
 from dotenv import load_dotenv
 from routes import filters_route # Import your Blueprint
 from routes.filters_route import filter_bp
+from services.database_service import startSession
+from flask import request
+
+from flask import request
+from sqlalchemy import func
 import os
 
 app = Flask(__name__)
@@ -16,30 +21,14 @@ CORS(app)
 
 load_dotenv()
 
-
-engine = create_engine(
-            f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASS')}@"
-            f"{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}",
-            echo=False,
-            pool_pre_ping=True,
-            pool_recycle=280,
-)
-
-
-SessionLocal = sessionmaker(bind=engine)
-
 @app.route("/")
 def index():
     return jsonify({"message": "Drink"})
 
-from flask import request
-
-from flask import request
-from sqlalchemy import func
 
 @app.route("/getAllProducts", methods=["GET"])
 def get_all_products():
-    session = SessionLocal()
+    session = startSession()
     try:
         # 1. Params and Pagination
         page = int(request.args.get("page", 1))
@@ -167,40 +156,6 @@ def get_all_products():
     finally:
         session.close()
 
-@app.route("/getStores")
-def get_stores():
-    session = SessionLocal()
-    try:
-        stmt = select(Store)
-        results = session.scalars(stmt).all()
-        result = [{"name": s.storeName} for s in results]
-        return jsonify(result), 200
-    except SQLAlchemyError as e:
-        session.rollback()
-        print("❌ Database error:", e)
-        return jsonify({"error": str(e)}), 500
-    finally:
-        session.close()
-
-
-# @app.route("/getCats")
-# def getCategories():
-#     session = SessionLocal()
-#     try:
-#         stmt = select(Product.type).distinct()
-#         results = session.scalars(stmt).all()
-#         result = [{"category": type} for type in results]
-#         return jsonify(result), 200
-    
-#     except SQLAlchemyError as e:
-
-#         session.rollback()
-#         print("❌ Database error:", e)
-#         return jsonify({"error": str(e)}), 500
-    
-#     finally:
-
-#         session.close()
 
 app.register_blueprint(filter_bp)
 
@@ -208,7 +163,7 @@ app.register_blueprint(filter_bp)
 @app.route("/getGenders")
 def getGenders():
     
-    session=SessionLocal()
+    session = startSession()
 
     try:
         stmt = select(Product.gender).distinct()
